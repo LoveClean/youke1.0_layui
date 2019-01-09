@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>直播投放--优客工厂</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="../../layui/css/layui.css" media="all"/>
+    <link rel="stylesheet" href="../../css/public.css" media="all"/>
+</head>
+<body class="childrenBody">
+<form class="layui-form">
+    <blockquote class="layui-elem-quote quoteBox">
+        <form class="layui-form">
+            <div class="layui-inline userAddress">
+                <!--<label class="layui-form-label">位置：</label>-->
+                <div class="layui-input-inline" lay-filter="test1" style="width: 13%">
+                    <select name="province" lay-filter="province" class="province" id="province">
+                        <option value="">省份</option>
+                    </select>
+                </div>
+                <div class="layui-input-inline" style="width: 13%">
+                    <select name="city" lay-filter="city" disabled id="city">
+                        <option value="">城市</option>
+                    </select>
+                </div>
+                <div class="layui-input-inline" style="width: 13%">
+                    <select name="area" lay-filter="area" disabled id="area">
+                        <option value="">区域</option>
+                    </select>
+                </div>
+                <!--投放类型选择器-->
+                <div class="layui-input-inline" style="width: 13%">
+                    <select name="type" id="type" lay-filter="type">
+                        <option value="">投放类型</option>
+                        <option value="1" id="buildFlag">按楼宇/社区</option>
+                        <option value="0">按设备分组</option>
+                    </select>
+                </div>
+                <div class="layui-input-inline" id="buildNav" style="display: none;width: 13%">
+                    <select name="build" id="build">
+                        <option value="">请选择楼宇</option>
+                    </select>
+                </div>
+                <div class="layui-input-inline" id="equipmentNav" style="display: none;width: 13%">
+                    <select name="equipment" id="equipment">
+                        <option value="">请选择设备分组</option>
+                    </select>
+                </div>
+                <div class="layui-inline">
+                    <a class="layui-btn search_btn" lay-filter="search_btn" data-type="reload" lay-submit>查询</a>
+                    <div class="layui-inline">
+                        <a class="layui-btn layui-btn-normal" id="flash"><i class="layui-icon">&#xe669;</i></a>
+                    </div>
+                </div>
+                <div class="layui-inline" style="float: right">
+                    <a class="layui-btn layui-btn-warm" id="putBuild_btn">按楼宇投放</a>
+                    <a class="layui-btn layui-btn-normal" id="putGroup_btn">按设备分组投放</a>
+                    <a class="layui-btn layui-btn-danger layui-btn-normal" id="delAll_btn">批量删除</a>
+                </div>
+            </div>
+        </form>
+    </blockquote>
+    <table id="dataList" lay-filter="dataList"></table>
+
+    <!--操作-->
+    <script type="text/html" id="option">
+        {{#  if(d.playStatus === 1 || d.playStatus === 0){ }}
+        <button class="layui-btn layui-btn-xs layui-btn-warm" lay-event="edit">编辑</button>
+        {{#  } }}
+        <button class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del">删除</button>
+    </script>
+</form>
+<script type="text/javascript" src="../../js/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.cookie.js"></script>
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="livePutList.js"></script>
+</body>
+</html>

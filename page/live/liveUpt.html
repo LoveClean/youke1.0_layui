@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>直播列表-修改直播</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="../../layui/css/layui.css" media="all"/>
+    <link rel="stylesheet" href="../eleTree/eleTree.css" media="all">
+    <link rel="stylesheet" href="../../css/public.css" media="all"/>
+</head>
+<body class="childrenBody">
+<form class="layui-form" style="width:95%; margin: 0 auto;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">直播标题:</label>
+        <div class="layui-input-block">
+            <input type="text" class="layui-input" id="title" placeholder="请输入直播标题" lay-verify="required">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">直播地址:</label>
+        <div class="layui-input-inline" style="width: 27%">
+            <input type="text" class="layui-input" id="address" placeholder="请输入直播地址" lay-verify="required">
+        </div>
+        <label class="layui-form-label">直播员:</label>
+        <div class="layui-input-inline" style="width: 27%">
+            <select name="player" lay-filter="player" id="player" lay-verify="required">
+                <option value=""></option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">封面素材:</label>
+        <div class="layui-input-block">
+            <button type="button" class="layui-btn" id="test1">
+                <i class="layui-icon">&#xe67c;</i>上传图片
+            </button>
+            <div class="layui-upload-list">
+                <p id="demoText" lay-verify="pathJudge"></p>
+                <img id="demoText2" width="40%">
+            </div>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">时间段:</label>
+        <div class="layui-input-block">
+            <input type="text" class="layui-input dateTime" id="dateTime" lay-filter="dateTime" lay-verify="required"
+                   placeholder="请选择时间段">
+        </div>
+    </div>
+    <div class="layui-form-item layui-row layui-col-xs12">
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit="" lay-filter="submit">确认修改</button>
+            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript" src="../../js/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.cookie.js"></script>
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script>
+
+    layui.config({
+        base: "../../layui/lay/mymodules/"
+    }).use(['jquery', 'table', 'eleTree', 'code', 'laydate', 'upload', 'form'], function () {
+        var $ = layui.jquery;
+        var eleTree = layui.eleTree;
+        var table = layui.table;
+        var code = layui.code;
+        var upload = layui.upload;
+        var laydate = layui.laydate;
+        var form = layui.form;
+
+
+        var live_player=sessionStorage.getItem("player");
+        var live_dateTime=sessionStorage.getItem("dateTime");
+        var live_picpath=sessionStorage.getItem("picpath");
+
+        form.verify({
+            pathJudge: function (value, item) { //value：表单的值、item：表单的DOM对象
+                if (item.innerText === "") {
+                    return '必须上传文件';
+                }
+            }
+        });
+        //初始化
+        $("#demoText").text("素材地址：" + live_picpath);
+        $("#demoText2").attr("src", live_picpath);
+        var imagePath = live_picpath;
+        upload.render({
+            elem: '#test1'
+            , url: $.cookie("tempUrl") + 'file/uploadImage?token=' + $.cookie("token")
+            , before: function (obj) { //obj参数包含的信息，跟 choose回调完全一致，可参见上文。
+                layer.load(); //上传loading
+            }
+            , done: function (res, index, upload) {
+                layer.closeAll('loading'); //关闭loading
+                //假设code=0代表上传成功
+                if (res.code === 0) {
+                    $("#demoText").text("素材地址：" + res.data);
+                    $("#demoText2").attr("src", res.data);
+                    imagePath = res.data;
+                } else {
+                    layer.msg(res.exception);
+                }
+            }
+            , error: function (index, upload) {
+                layer.closeAll('loading'); //关闭loading
+            }
+        });
+
+        //直播员渲染
+        $.ajax({
+            url: $.cookie("tempUrl") + "play/selectPlayerList.do?token=" + $.cookie("token"),
+            type: "POST",
+            success: function (result) {
+                $.each(result.data, function (index, item) {
+                    $("#player").append($('<option value=' + item.id + '>' + item.truename + '</option>'));
+                });
+                $("#player").val(live_player);
+                form.render('select');
+            }
+        });
+
+        form.on('submit(submit)', function (data) {
+            var title = $("#title").val();
+            var address = $("#address").val()
+            var player = parseInt($("#player").val())
+            var dateTime = $("#dateTime").val().split("~");
+            //弹出loading
+            var index = top.layer.msg('数据提交中，请稍候', {icon: 16, time: false, shade: 0.8});
+            $.ajax({
+                url: $.cookie("tempUrl") + "play/updatePlay.do?token=" + $.cookie("token"),
+                type: "POST",
+                dataType: "json",
+                contentType: "application/json;charset=utf-8",
+                data: JSON.stringify({
+                    id: $("#title").attr("data-id"),
+                    begintime: dateTime[0].trim(),
+                    endtime: dateTime[1].trim(),
+                    picpath: imagePath,
+                    playerid: player,
+                    realaddress: address,
+                    title: title,
+                    type: 0
+                }),
+            // {
+            //     "begintime": "string",
+            //     "endtime": "string",
+            //     "id": 0,
+            //     "picpath": "string",
+            //     "playerid": 0,
+            //     "realaddress": "string",
+            //     "status": 0,
+            //     "title": "string",
+            //     "type": 0
+            // }
+                success: function (result) {
+                    if (result.code === 0) {
+                        top.layer.close(index);
+                        layer.msg("直播修改成功");
+                        layer.closeAll("iframe");
+                        //刷新父页面
+                        parent.location.reload();
+                    } else {
+                        layer.msg(result.exception, {icon: 7, anim: 6});
+                    }
+                }
+            })
+            return false;
+        })
+
+
+        //日期时间控件
+        laydate.render({
+            elem: '.dateTime',
+            type: 'datetime',
+            range: '~',    // 开启时间段选择
+            calendar: true,    // 公立节日
+            format: 'yyyy-MM-dd HH:mm:ss',
+            value: live_dateTime,
+            trigger: 'click',
+            position: 'fixed',
+            min: 0,
+            max: 4073558400000,
+            done: function (value, date) {
+            }
+        });
+    });
+
+</script>
+</body>
+</html>

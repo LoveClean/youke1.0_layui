@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>优客工厂</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="../../layui/css/layui.css" media="all"/>
+    <link rel="stylesheet" href="../eleTree/eleTree.css" media="all">
+    <link rel="stylesheet" href="../../css/public.css" media="all"/>
+</head>
+
+<body class="childrenBody">
+<form class="layui-form" style="width:95%; margin: 0 auto;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">选择直播：</label>
+        <div class="layui-input-block">
+            <select name="playing" lay-filter="playing" id="playing" lay-verify="required">
+                <option value="">请选择未结束的直播</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">设备分组：</label>
+        <div class="layui-input-block">
+            <select name="group" lay-filter="group" id="group" lay-verify="required">
+                <option value="">请选择设备分组</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <div style="width: 110px; float: left; text-align: center">
+            <label class="layui-form-label">投放区域：</label>
+            <div style="text-align: center;" id="btnWrap">
+                <button class="layui-btn layui-btn-normal layui-btn-sm" id="expand">展开</button>
+                <hr>
+                <button class="layui-btn layui-btn-normal layui-btn-sm" id="unExpand">收起</button>
+                <hr>
+                <button class="layui-btn layui-btn-normal layui-btn-sm" id="reset">重置</button>
+                <hr>
+                <button class="layui-btn layui-btn-sm" lay-submit lay-filter="submit">提交</button>
+            </div>
+        </div>
+        <div style="width: 300px; float: left; border: 1px slategray solid; margin-left: 20px;">
+            <div class="ele1" style="width: 300px"></div>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript" src="../../js/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.cookie.js"></script>
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script>
+
+    layui.config({
+        base: "../../layui/lay/mymodules/"
+    }).use(['jquery', 'table', 'eleTree', 'code', 'form'], function () {
+        var $ = layui.jquery;
+        var eleTree = layui.eleTree;
+        var table = layui.table;
+        var code = layui.code;
+        var form = layui.form;
+
+
+        const DELIVER_TYPE = 0; // 投放类型[0:设备分组，1:楼宇]
+
+        // 所有楼宇树- 渲染
+        var buildsTree = eleTree.render({
+            elem: '.ele1',
+            //accordion: true,//手风琴
+            url: $.cookie("tempUrl") + "building/get_building_list3.do?token=" + $.cookie("token"),
+            showCheckbox: true, // 开启选择
+            renderAfterExpand: false, //初始渲染所有子节点
+        });
+
+        //渲染直播
+        $.ajax({
+            url: $.cookie("tempUrl") + "play/selectUnfinishedLists.do?token=" + $.cookie("token"),
+            type: "POST",
+            success: function (result) {
+                $.each(result.data, function (index, item) {
+                    $("#playing").append($('<option value=' + item.id + '>' + item.title + '</option>'));
+                });
+                form.render('select');
+            }
+        });
+
+        // 渲染设备分组
+        $.ajax({
+            url: $.cookie("tempUrl") + "devicegroup/get_group.do?token=" + $.cookie("token"),
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            success: function (d) {
+                var groups = d.data;
+                if (groups !== null) {
+                    $.each(groups, function (index, item) {
+                        $("#group").append($("<option value=" + item.id + ">" + item.name + "</option>"))
+                    });
+                }
+                form.render('select');
+            }
+        });
+
+        // 按钮点击事件
+        $("#btnWrap").on("click", "button", function (e) {
+            obj = e.target;
+            if (obj.id === "expand") {
+                e.preventDefault();
+                buildsTree.expandAll();
+            } else if (obj.id === "unExpand") {
+                e.preventDefault();
+                buildsTree.unExpandAll();
+            } else if (obj.id === "reset") {
+                e.preventDefault();
+                buildsTree.unCheckNodes();
+            }
+        });
+        form.on("submit(submit)", function (data) {
+            var areaIds = buildsTree.getChecked(true, true);
+            var areaIdsList = [];
+            if (areaIds.length) {
+                $.each(areaIds, function (index, item) {
+                    areaIdsList.push(item.key.toString());
+                });
+                // 弹出loading
+                var index = top.layer.msg('数据提交中，请稍候', {icon: 16, time: false, shade: 0.8});
+                $.ajax({
+                    url: $.cookie("tempUrl") + "playdelivery/batch_add_delivery.do?token=" + $.cookie("token"),
+                    type: "POST",
+                    datatype: "application/json",
+                    contentType: "application/json;charset=utf-8",
+                    data: JSON.stringify({
+                        "playid": parseInt($("#playing").val()),
+                        "areaAndBuildingList": areaIdsList,
+                        "delivertype": DELIVER_TYPE,
+                        "groupid": parseInt(data.field.group)
+                    }),
+                    success: function (result) {
+                        top.layer.close(index);
+                        if (result.httpStatus == 200) {
+                            top.layer.msg("直播投放成功！");
+                            layer.closeAll("iframe");
+                            //刷新父页面
+                            parent.location.reload();
+                        } else {
+                            layer.alert(result.exception, {icon: 7, anim: 6});
+                        }
+                    }
+                });
+            }
+            return false;
+        });
+
+
+    });
+</script>
+</body>
+</html>

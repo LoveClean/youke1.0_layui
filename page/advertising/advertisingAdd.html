@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>制作广告</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="../../layui/css/layui.css" media="all"/>
+    <link rel="stylesheet" href="../../css/public.css" media="all"/>
+    <link rel="stylesheet" href="video-js.min.css">
+    <style>
+        #materialWrap{ margin-top: 20px;}
+        #materialWrap .materialItem{ border-top: #838383 solid 1px;display: flex; padding: 10px; justify-content: space-between;}
+        /*#materialWrap .materialItem li{ line-height: 2em;}*/
+        #materialWrap .materialItem .option{ display: flex; align-items: center; margin-left: 20px;}
+        #materialWrap .materialItem .preview{ color: #01AAED;}
+        #materialWrap .label{display: inline-block; width: 70px; text-align: center;}
+        #materialWrap .materialItem .musicAddBtn{ margin-left: 20px;}
+    </style>
+</head>
+<body class="childrenBody">
+<form class="layui-form" hidden id="musicAdd">
+    <div class="layui-form-item" style="padding-top: 20px">
+        <label class="layui-form-label">音乐素材:</label>
+        <div class="layui-input-inline">
+            <select name="advertisingGroup" id="music" lay-verify="required">
+                <option value="">请选择音乐素材</option>
+            </select>
+        </div>
+    </div>
+</form>
+<form class="layui-form">
+    <blockquote class="layui-elem-quote quoteBox">
+        <div class="layui-inline">
+            <label class="layui-form-label">广告名称：</label>
+            <div class="layui-inline">
+                <input type="text" class="layui-input adName" placeholder="请输入广告名称" lay-verify="required">
+            </div>
+        </div>
+        <div class="layui-inline">
+            <label class="layui-form-label">广告分组：</label>
+            <div class="layui-inline">
+                <select name="advertisingGroup" id="advertisingGroup" lay-verify="required">
+                    <option value="">请选择分组</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-inline">
+            <div class="layui-inline">
+                <button class="layui-btn layui-btn-normal" lay-submit="" lay-filter="addGroup">确认添加</button>
+            </div>
+        </div>
+    </blockquote>
+    <blockquote class="layui-elem-quote quoteBox">
+        <div>
+            <h3>广告素材车: <button class="layui-btn layui-btn-normal" id="adPreview">预览</button></h3>
+            <span style="color: #FF5722" id="temp">还未添加素材</span>
+            <div class="layui-inline" id="materialWrap"></div>
+        </div>
+    </blockquote>
+</form>
+    <blockquote class="layui-elem-quote quoteBox">
+        <form class="layui-form">
+            <div class="layui-inline">
+                <label class="">&nbsp;素材分组：</label>
+                <div class="layui-input-inline">
+                    <select id="materialGroup" name="materialGroup" lay-verify="materialGroup">
+                        <option value="">请选择一个分组</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <label class="">&nbsp;素材名称：</label>
+                <div class="layui-input-inline">
+                    <input type="text" class="layui-input searchVal" id="materialName" lay-verify="materialName"
+                           placeholder="请输入素材名称"/>
+                </div>
+            </div>
+            <div class="layui-inline">
+                <a class="layui-btn search_btn" lay-filter="search_btn" data-type="reload" lay-submit>搜索</a>
+            </div>
+            <div class="layui-inline">
+                <div class="layui-inline">
+                    <button class="layui-btn layui-btn-warm" id="setAd">添加到广告素材车</button>
+                </div>
+            </div>
+        </form>
+        <table id="materialList" lay-filter="materialList"></table>
+    </blockquote>
+
+
+<script type="text/javascript" src="../../js/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.cookie.js"></script>
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="video.min.js"></script>
+<script type="text/javascript" src="advertisingAdd.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>预览--优客工厂</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="../../layui/css/layui.css" media="all"/>
+    <link rel="stylesheet" href="../../css/public.css" media="all"/>
+    <link rel="stylesheet" href="video-js.min.css">
+</head>
+<body class="childrenBody">
+<div id="content"></div>
+
+<script type="text/javascript" src="../../js/jquery-1.11.2.min.js"></script>
+<script type="text/javascript" src="../../layui/layui.js"></script>
+<script type="text/javascript" src="video.min.js"></script>
+<script>
+    layui.use(['layer'], function () {
+        var layer = layui.layer,
+            $ = layui.jquery;
+
+        var dataStr = sessionStorage.getItem("previewMaterial");
+        var data = JSON.parse(dataStr);
+
+        var type = [], src = [], musicTime = [], musicPath = [];
+        $.each(data, function (index, item) {
+            type.push(item.type);
+            src.push(item.materialPath);
+            musicTime.push(parseInt(item.displayTime) * 1000);
+            musicPath.push(item.musicPath);
+        });
+
+        //初始化
+        var index = 0;
+        var arr = [];
+        for (var i = 0; i < type.length; i++) {
+            arr.push([type[i], src[i], musicTime[i], musicPath[i]]);
+        }
+
+        init();
+
+        //初始化方法
+        function init() {
+            listenType("", index);
+            // 监听视频事件
+            $("video").on("timeupdate", function (event) {
+                onTrackedVideoFrame(this.currentTime, this.duration);
+            });
+        }
+
+        function onTrackedVideoFrame(currentTime, duration) {
+            // 当播放时间与视频总时相同时
+            if (currentTime == duration) {
+                init();
+            }
+        }
+
+        function listenType(temp, indexT) {
+            try {
+                index++;
+                $("#content").html("");
+                if (arr[indexT][0] == "图片") {
+                    $("#content").append('<img src="' + arr[indexT][1] + '" width="800px" height="450px"><audio src="' + arr[indexT][3] + '" autoplay></audio>');
+                    setTimeout(function () {
+                        init();
+                    }, arr[indexT][2])
+                } else if (arr[indexT][0] == "视频") {
+                    $("#content").append('<video src="' + arr[indexT][1] + '" controls autoplay width="800px" height="450px"></video>');
+                } else if (arr[indexT][0] == "直播") {
+                   // $("#content").append('<video id="myVideo" controls style="max-width: 800px;max-height: 600px"><source src="' + arr[indexT][1] + '" type="application/x-mpegURL"></video>');
+                    var myVideoEL=$("<video id='myVideo' class='video-js vjs-default-skin vjs-big-play-centered' controls preload='auto' width='800px' height='450px'><source type='application/x-mpegURL' src='"+ arr[indexT][1] +"'></video>")
+                    $("#content").append(myVideoEL);
+                    videojs('myVideo', {
+                        bigPlayButton: false,
+                        textTrackDisplay: false,
+                        posterImage: false,
+                        errorDisplay: false,
+                        autoplay: true,
+                        preload: "auto",
+                    });
+                }
+            } catch (e) {
+                layer.msg("播放完成");
+                // 关闭弹窗
+                var indexTest = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+                parent.layer.close(indexTest);
+                // parent.location.reload();
+            }
+        }
+    });
+</script>
+</body>
+</html>
